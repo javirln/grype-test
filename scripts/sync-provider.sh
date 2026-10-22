@@ -20,6 +20,12 @@ s=$(date +%s)
 docker run -d --name "$name" --user "$(id -u):$(id -g)" -e HOME=/tmp -e GITHUB_TOKEN -w / \
   -v "$WORK/data/vunnel:/data/vunnel" -v "$WORK/.vunnel.yaml:/.vunnel.yaml" "$VUNNEL_IMAGE" run "$p" >/dev/null
 id=$(docker inspect --format '{{.Id}}' "$name")
+# stream a progress line every 2 minutes into the job log (the full log is uploaded at the end)
+( while docker inspect "$name" >/dev/null 2>&1; do
+    sleep 120
+    echo "[$(date -u +%TZ)] +$(( $(date +%s) - s ))s: $(docker logs --tail 1 "$name" 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | cut -c1-200)"
+  done ) &
+progress=$!
 peak=0
 status=done
 while [ "$(docker inspect --format '{{.State.Running}}' "$name")" = true ]; do
@@ -31,6 +37,7 @@ done
 rc=$(docker inspect --format '{{.State.ExitCode}}' "$name")
 docker logs --tail 3000 "$name" > "$OUT/vunnel.log" 2>&1
 docker rm "$name" >/dev/null
+kill "$progress" 2>/dev/null
 secs=$(( $(date +%s) - s ))
 ws=$(du -sb "$WORK/data/vunnel/$p" 2>/dev/null | cut -f1)
 
