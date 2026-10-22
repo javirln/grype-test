@@ -1,0 +1,27 @@
+{
+ "bomFormat": "CycloneDX",
+ "specVersion": "1.5",
+ "version": 1,
+ "metadata": {
+  "component": {
+   "type": "container",
+   "name": "probe-wolfi-nodejs-24",
+   "bom-ref": "root"
+  }
+ },
+ "components": [
+  {
+   "type": "operating-system",
+   "name": "wolfi",
+   "version": "20230201",
+   "bom-ref": "os"
+  },
+  {
+   "type": "library",
+   "name": "nodejs-24",
+   "version": "24.22.0-r0",
+   "purl": "pkg:apk/wolfi/nodejs-24@24.22.0-r0?arch=x86_64&distro=wolfi-20230201",
+   "bom-ref": "pkg"
+  }
+ ]
+}

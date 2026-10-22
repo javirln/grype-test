@@ -1,0 +1,40 @@
+# grype-db config with the provider list of Anchore's config/grype-db/publish-nightly-r2.yaml (grype-db v0.54.5).
+# vunnel runs in its own step (scripts/sync-provider.sh), not from grype-db.
+provider:
+  root: data/vunnel
+  vunnel:
+    generate-configs: false
+  configs:
+    - name: nvd
+    - name: alpine
+    - name: alma
+    - name: arch
+    - name: amazon
+    - name: bitnami
+    - name: chainguard
+    - name: chainguard-libraries
+    - name: debian
+    - name: echo
+    - name: eol
+    - name: epss
+    - name: fedora
+    - name: github
+    - name: govulndb
+    - name: hummingbird
+    - name: kev
+    - name: mariner
+    - name: minimos
+    - name: oracle
+    - name: photon
+    - name: rhel
+    - name: secureos
+    - name: sles
+    - name: ubuntu
+    - name: wolfi
+build:
+  dir: ./build
+  schema-version: 6        # the README sample says 5; grype v0.115.0 reads schema 6
+  batch-size: 10000
+  hydrate: false
+package:
+  publish-base-url: https://example.invalid/grype/databases

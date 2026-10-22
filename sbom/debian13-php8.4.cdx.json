@@ -1,0 +1,27 @@
+{
+ "bomFormat": "CycloneDX",
+ "specVersion": "1.5",
+ "version": 1,
+ "metadata": {
+  "component": {
+   "type": "container",
+   "name": "probe-debian13-nodejs",
+   "bom-ref": "root"
+  }
+ },
+ "components": [
+  {
+   "type": "operating-system",
+   "name": "debian",
+   "version": "13",
+   "bom-ref": "os"
+  },
+  {
+   "type": "library",
+   "name": "php8.4",
+   "version": "8.4.16-1~deb13u1",
+   "purl": "pkg:deb/debian/php8.4@8.4.16-1%7Edeb13u1?arch=x86_64&distro=debian-13",
+   "bom-ref": "pkg"
+  }
+ ]
+}

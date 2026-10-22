@@ -1,0 +1,27 @@
+{
+ "bomFormat": "CycloneDX",
+ "specVersion": "1.5",
+ "version": 1,
+ "metadata": {
+  "component": {
+   "type": "container",
+   "name": "probe-debian13-nodejs",
+   "bom-ref": "root"
+  }
+ },
+ "components": [
+  {
+   "type": "operating-system",
+   "name": "debian",
+   "version": "13",
+   "bom-ref": "os"
+  },
+  {
+   "type": "library",
+   "name": "nodejs",
+   "version": "20.19.2+dfsg-1+deb13u3",
+   "purl": "pkg:deb/debian/nodejs@20.19.2%2Bdfsg-1%2Bdeb13u3?arch=x86_64&distro=debian-13",
+   "bom-ref": "pkg"
+  }
+ ]
+}

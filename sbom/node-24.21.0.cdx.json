@@ -1,0 +1,26 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:3f0c6b1e-7a43-4f0e-9a51-2b1d2f6c9e10",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-22T09:00:00Z",
+    "tools": { "components": [ { "type": "application", "name": "hand-written for grype-db-spike" } ] },
+    "component": { "bom-ref": "image", "type": "container", "name": "example/node-built-from-source", "version": "spike" }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:generic/node@24.21.0?package-id=node-bin",
+      "type": "application",
+      "name": "node",
+      "version": "24.21.0",
+      "cpe": "cpe:2.3:a:nodejs:node.js:24.21.0:*:*:*:*:*:*:*",
+      "purl": "pkg:generic/node@24.21.0",
+      "properties": [
+        { "name": "syft:package:foundBy", "value": "binary-classifier-cataloger" },
+        { "name": "syft:package:type", "value": "binary" },
+        { "name": "syft:location:0:path", "value": "/nodejs/bin/node" }
+      ]
+    }
+  ]
+}
