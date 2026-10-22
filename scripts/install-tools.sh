@@ -12,4 +12,5 @@ curl -sSfL -o "tmp/$1.tar.gz" "$url"
 echo "$sha  tmp/$1.tar.gz" | sha256sum -c -
 tar -xzf "tmp/$1.tar.gz" -C bin "$1"
 if [ "$1" = grype ]; then echo "$GRYPE_BIN_SHA256  bin/grype" | sha256sum -c -; fi
-"bin/$1" version | head -3
+"bin/$1" version > "tmp/$1.version"   # not piped into head: an early close is SIGPIPE (141) under pipefail
+sed -n 1,3p "tmp/$1.version"
