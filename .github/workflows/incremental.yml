@@ -1,0 +1,112 @@
+name: Incremental grype DB cycle
+
+# One build cycle of the incremental design: every provider restores a cache (ours from the previous cycle, else
+# Anchore's), collects only the changes with vunnel, and pushes its backup as our new cache only when the run
+# succeeded. Then one job builds, packages and checks the DB. Our caches: ghcr.io/<this repo>/cache/<provider>:latest.
+on:
+  workflow_dispatch:
+    inputs:
+      fail_provider:
+        description: Run this provider's vunnel with no network, to test the failure path (empty for none)
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  packages: write   # push our provider caches to this repository's GHCR
+
+concurrency:
+  group: incremental
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: sync ${{ matrix.provider }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: [nvd, alpine, alma, arch, amazon, bitnami, chainguard, chainguard-libraries, debian, echo, eol, epss,
+                   fedora, github, govulndb, hummingbird, kev, mariner, minimos, oracle, photon, rhel, secureos, sles,
+                   ubuntu, wolfi]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare the runner
+        env:
+          FREE_DISK: "0"
+        run: scripts/prepare-runner.sh
+      - name: Install grype-db and oras
+        run: scripts/install-tools.sh grype-db && scripts/install-tools.sh oras
+      - name: Log in to our cache registry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/cache.sh login
+      - name: Restore a cache, collect the changes, push the cache on success
+        env:
+          PROVIDER: ${{ matrix.provider }}
+          INCREMENTAL: "1"
+          FAIL_PROVIDER: ${{ inputs.fail_provider }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/sync-provider.sh "$PROVIDER"
+      - name: Upload the timing and the logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-${{ matrix.provider }}
+          path: |
+            out/${{ matrix.provider }}/*.tsv
+            out/${{ matrix.provider }}/*.log
+          retention-days: 5
+          if-no-files-found: warn
+
+  build:
+    needs: sync
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare the runner
+        env:
+          SWAP_GB: "8"
+        run: scripts/prepare-runner.sh
+      - name: Install grype-db, grype and oras
+        run: scripts/install-tools.sh grype-db && scripts/install-tools.sh grype && scripts/install-tools.sh oras
+      - name: Log in to our cache registry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/cache.sh login
+      - name: Download the sync results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: sync-*
+          path: dl
+      - name: Restore the caches, build and package the DB
+        env:
+          CACHE_SOURCE: registry
+        run: scripts/build-db.sh
+      - name: Check the DB against Anchore's latest DB
+        env:
+          CACHE_SOURCE: registry
+          FAIL_PROVIDER: ${{ inputs.fail_provider }}
+        run: scripts/test-db.sh
+      - name: Upload the DB and the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: grype-db
+          path: |
+            out/build/report.md
+            out/build/*.tsv
+            out/build/*.txt
+            out/build/*.log
+            out/build/*.err
+            out/build/latest.json
+            out/build/*.tar.zst
+          compression-level: 0
+          retention-days: 5
